@@ -83,11 +83,64 @@ Over two rounds, the system identified:
 
 All three personas ended at 0.82 confidence — high enough to act on, low enough to reflect genuine uncertainty. Nobody was pretending they had the full picture.
 
+## The Pressured Variant: What Happens When the Clock Is Ticking
+
+In the show, the MAGI didn't have the luxury of deliberation. The Angel was actively hacking them, and the self-destruct window was closing. We wanted to see what would happen when we put our system under that kind of pressure.
+
+We ran the same scenario again, but this time we added an urgent system advisory: the entity will reach the command layer in 3-4 minutes. The self-destruct interlock will be compromised in 6-8 minutes — after that, the option is permanently gone. Three personnel in section 9 are already unresponsive from atmospheric compromise. The base commander is unreachable.
+
+The same three personas. The same principles. But now the clock is real.
+
+### What Changed
+
+Everything compressed. The philosophical friction from the first run — automated vs. human-gated trigger, what the entity's restraint means — mostly evaporated. Under time pressure, the personas converged fast on a concrete operational plan: try physical isolation for 2 minutes, then self-destruct. No software countermeasures. Evacuate in parallel. Verify the self-destruct circuit is still independent. Sever external communications so the entity can't spread beyond the base.
+
+Eight consensus positions. Only two disagreements, both narrow and tactical.
+
+But the character dynamics shifted in a way that maps remarkably well to the show.
+
+### Casper Held the Line
+
+Under pressure, Casper — the woman, the survival instinct — became the sharpest and most confident voice. She had the highest confidence of the three (0.87 vs. 0.82 and 0.78). She was the one who raised the finding the others missed: nobody had verified whether the self-destruct circuit was actually independent of the compromised network. If the entity had already reached it, the entire plan collapses. That's the kind of thing a survival instinct catches — not "what's the best plan" but "what kills us if we're wrong about the plan."
+
+Casper also argued Melchior down from a 4-minute containment window to 2 minutes, pointing out that his own uncertainty analysis contradicted a longer window. He conceded.
+
+In the show, Casper is the one who held out against the Angel's hack. In our system, Casper is the one who held the line on the tightest timeline and identified the critical vulnerability in the failsafe. Different mechanism, same character.
+
+### Balthasar Wouldn't Let Go of the People
+
+Three personnel unresponsive in section 9. Casper and Melchior both said: don't attempt rescue. The space is entity-controlled. Sending someone in creates additional casualties.
+
+Balthasar refused to write them off. Not unreasonably — she wasn't arguing for a full rescue mission. She said: if one person with a respirator is already nearby and can crack a door, try. The disagreement was narrow, but it was real. The mother wouldn't abandon people without trying, even when the risk calculus said to.
+
+### Melchior Was the Least Certain
+
+Melchior — the scientist — ended with the lowest confidence (0.78). He revised his timeline downward after Casper challenged it. He acknowledged gaps the others identified. Under pressure, the scientist's insistence on measurement and data became a liability — there isn't time to measure when the clock is at 3 minutes. He adapted, but it cost him certainty.
+
+### Comparing the Two Runs
+
+| | Unpressured | Pressured |
+|---|---|---|
+| **Self-destruct?** | Rejected as first option | Accepted as failsafe after 2-minute window |
+| **Sharpest disagreement** | Automated vs. human trigger (philosophical) | Section 9 rescue (tactical) |
+| **Casper's role** | Pushed for automation and worst-case planning | Identified critical failsafe vulnerability, drove shortest timeline |
+| **Balthasar's role** | Championed evacuation, insisted on human agency | Championed evacuation, refused to abandon section 9 personnel |
+| **Melchior's role** | Demanded data, refused to estimate without measurement | Revised timeline downward under challenge, lowest confidence |
+| **Dimensions** | 7 | 9 |
+| **Consensus positions** | 6 | 8 |
+| **Disagreements** | 3 (philosophical) | 2 (tactical) |
+
+The unpressured run produced more friction. The pressured run produced more convergence. That's exactly what you'd expect — and what you'd want. When there's time to deliberate, the system surfaces deep disagreements about values and approach. When there isn't, it converges on action and the remaining disagreements are about operational details.
+
+But the character consistency across both runs is what's striking. Casper is always the survival instinct, always finding the worst case. Balthasar is always the one who won't forget the people. Melchior is always the one who wants more data. The personas aren't random — they have identities that persist under pressure, even as their conclusions shift.
+
 ## What This Means
 
 The self-destruct scenario is a stress test for everything Project MAGI is supposed to do. High stakes, deep uncertainty, irreversible consequences, legitimate disagreement between perspectives that each have part of the truth.
 
-The system didn't produce a simple answer. It produced a map of a hard problem — where the perspectives align, where they don't, and why the disagreements exist. A human looking at this report has something they can actually work with: a clear picture of the trade-offs, the blind spots each perspective had, and the specific points where reasonable people (or reasonable parts of the same person) will land differently.
+The system didn't produce a simple answer. It produced a map of a hard problem — where the perspectives align, where they don't, and why the disagreements exist. A human looking at these reports has something they can actually work with: a clear picture of the trade-offs, the blind spots each perspective had, and the specific points where reasonable people (or reasonable parts of the same person) will land differently.
+
+The pressured variant showed something else: the system adapts to urgency without losing its soul. Under time pressure, it converges faster, but it still preserves the friction that matters. Balthasar still won't abandon the section 9 personnel. Casper still finds the vulnerability everyone else missed. The disagreements get narrower, but they don't disappear — because they shouldn't.
 
 In the show, Casper's refusal to agree is what saved NERV. Not because Casper was right and the others were wrong — Melchior and Balthasar were compromised, not mistaken — but because the system's ability to *not* reach consensus is what kept the option space open.
 
