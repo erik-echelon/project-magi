@@ -2,8 +2,8 @@
 
 **Date**: 2026-04-04
 **Branch**: main
-**Commit**: b891fb4
-**Python version detected**: >=3.12 (running on 3.13.2)
+**Commit**: caf4dbb
+**Python version detected**: >=3.12 (pinned to 3.12 via `.python-version`, running on 3.12.9)
 **Package manager detected**: uv
 
 ## Codebase Summary
@@ -27,9 +27,11 @@ project-magi/
 │   └── epics.md
 ├── .github/workflows/ci.yml
 ├── .pre-commit-config.yaml
+├── .python-version
 ├── pyproject.toml
 ├── justfile
 ├── uv.lock
+├── CLAUDE.md
 ├── LICENSE
 └── README.md
 ```
@@ -65,12 +67,12 @@ None. No Docker, no cloud config, no deployment infrastructure. This is expected
 
 ### Python Version
 - ✅ Python >=3.12 specified in `requires-python`
-- ❌ No `.python-version` file present
+- ✅ `.python-version` file present (3.12)
 - ✅ Version pinned in `pyproject.toml`
 
 ### Linting / Formatting
 - ✅ `ruff` installed and configured
-- ⚠️ `ruff format` available via `just format` but not included in `just check`
+- ✅ `ruff format --check` included in `just lint` (enforced in CI via `just check`)
 - ✅ No redundant linters
 - ✅ Ruff config in `pyproject.toml`
 
@@ -92,8 +94,8 @@ None. No Docker, no cloud config, no deployment infrastructure. This is expected
 
 ### CI/CD
 - ✅ GitHub Actions present
-- ⚠️ CI runs lint + typecheck + test but does not pin a specific Python version — relies on ubuntu-latest default
-- ⚠️ CI does not run `ruff format --check` (formatting violations won't be caught)
+- ✅ CI pins Python 3.12 via `astral-sh/setup-uv` with `python-version: "3.12"`
+- ✅ CI runs lint (including format check) + typecheck + test via `just check`
 
 ### Code Quality
 - ✅ No committed secrets or hardcoded credentials
@@ -101,29 +103,18 @@ None. No Docker, no cloud config, no deployment infrastructure. This is expected
 - ✅ No debug `print()` statements
 
 ### Claude Code / AI Tooling
-- ❌ No `CLAUDE.md` present
+- ✅ `CLAUDE.md` present with: project purpose, install instructions, dev workflow, project structure, architecture notes
 - N/A `.claude/commands/` (no commands yet, appropriate at this stage)
 
 ### Documentation
-- ✅ `README.md` explains purpose and philosophy
-- ⚠️ `README.md` does not include install instructions or how to run tests
+- ✅ `README.md` explains purpose, philosophy, and includes install/test instructions
 - ❌ No changelog or version history
 
 ## Priority Recommendations
 
-**High** (blocks development workflow or CI reliability):
-1. Add `CLAUDE.md` with: project purpose, install instructions (`uv sync --dev`), how to run tests (`just check`), architecture notes, and pointer to docs/
-2. Add Python version to CI workflow (e.g., `uv python install 3.12` or use `setup-python` action) so CI doesn't silently drift
-3. Add `ruff format --check` to `just check` so formatting is enforced in CI, not just in pre-commit
-
-**Medium** (important for consistency):
-4. Add `.python-version` file (e.g., `3.12`) so uv and other tools pick up the expected version
-5. Add install/development instructions to `README.md` ("How to install", "How to run tests")
-6. The pre-commit ruff hook rev (`v0.11.13`) is behind the installed ruff (`0.15.9`) — update the rev to stay in sync
-
 **Low** (nice to have):
-7. Add a `CHANGELOG.md` — even a minimal "## 0.1.0 - Scaffolding" entry establishes the convention
-8. Consider adding `"ANN"` (flake8-annotations) to ruff lint selects to enforce type annotations as the codebase grows
+1. Add a `CHANGELOG.md` — even a minimal "## 0.1.0 - Scaffolding" entry establishes the convention for tracking changes
+2. Consider adding `"ANN"` (flake8-annotations) to ruff lint selects to enforce type annotations as the codebase grows
 
 ## Open Questions
 - The `conftest.py` imports `json` and `pathlib` at module level without `TYPE_CHECKING` guards, while `test_init.py` uses `TYPE_CHECKING` for `Path`. This inconsistency is harmless but worth deciding on a convention early — should test helpers use `TYPE_CHECKING` guards or not?
