@@ -353,3 +353,28 @@ The input to the system is:
 - The critique agent identifies at least 3 distinct dimensions of disagreement
 - The final report contains both consensus positions and unresolved disagreements
 - A human reading the output would find it genuinely useful for thinking through the decision
+
+---
+
+## MAGI-12: Agent Prompt Hardening
+
+**Goal:** Harden the default persona prompts and output parsing based on patterns observed in the BolivarTech MAGI implementation. Low-effort, high-impact polish.
+
+**Stories:**
+
+- **MAGI-12.1** — Add explicit non-overlap directives to each default persona prompt. Each persona should state what it focuses on AND what it defers to the others. Example: Melchior says "Leave risk and failure mode analysis to Casper." Casper says "Leave technical correctness verification to Melchior." This reduces duplicate findings and sharpens differentiation.
+- **MAGI-12.2** — Add confidence calibration guidance to persona prompts. Include a calibration scale (e.g., "0.9+ = virtually certain, 0.7–0.8 = confident but some unknowns, 0.5 = genuinely uncertain, below 0.5 = more doubt than confidence") so that confidence values are meaningful and comparable across personas.
+- **MAGI-12.3** — Add zero-width Unicode character stripping to the output parser. LLMs occasionally produce invisible characters (zero-width spaces, joiners, etc.) that make strings look non-empty but contain no visible content. Strip these before validating finding titles and other string fields.
+- **MAGI-12.4** — Tests: verify non-overlap directives are present in all default personas, verify calibration guidance is present, verify zero-width character stripping works on edge cases.
+
+**Testing (Tier 1 only):**
+- Parse a finding title containing zero-width characters → stripped to empty → finding skipped
+- Parse a finding title with zero-width characters mixed into real text → characters stripped, real text preserved
+- Load default personas → each contains a reference to what it defers to other personas
+- Load default personas → each contains confidence calibration guidance
+
+**Acceptance Criteria:**
+- Each default persona prompt explicitly states what it defers to the other two
+- Each default persona prompt includes confidence calibration guidance
+- Zero-width characters in finding titles and analysis text are stripped before validation
+- Existing integration tests still pass (prompts are backward-compatible)
