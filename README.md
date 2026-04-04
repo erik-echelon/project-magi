@@ -18,16 +18,63 @@ Working with a single AI has the same problem. One perspective gives you one rea
 
 At the end of the series, Shinji is offered Instrumentality: dissolve all human consciousness into one unified whole, no more misunderstanding, no more pain. He turns it down. Separate minds that struggle to understand each other are better than one mind that never has to. MAGI takes the same position. It doesn't blend perspectives into an average. It keeps them separate, lets them argue, and reports what survived.
 
-## Getting Started
+## Quick Start
 
 Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-uv sync --dev        # Install dependencies
-just check           # Run lint + typecheck + tests
+git clone https://github.com/erik-echelon/project-magi.git
+cd project-magi
+uv sync --dev
 ```
 
-See `CLAUDE.md` for the full development workflow.
+Create a `.env` file with your Anthropic API key:
+
+```
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+Run a deliberation:
+
+```bash
+uv run --env-file .env magi deliberate "Should we adopt microservices?" --auto
+```
+
+See the [User Guide](docs/user-guide.md) for full documentation.
+
+## Using as a Library
+
+```python
+import asyncio
+from project_magi import MagiSession
+
+async def main():
+    session = MagiSession(max_rounds=3)
+    result = await session.deliberate(
+        question="Should we prioritize the API rewrite or onboarding?",
+    )
+    print(result.report)
+
+asyncio.run(main())
+```
+
+## Documentation
+
+- **[User Guide](docs/user-guide.md)** — installation, CLI reference, library API, custom personas, report format
+- **[Philosophy](docs/philosophy.md)** — the design principles behind MAGI
+- **[PRD](docs/PRD.md)** — full product requirements
+- **[Capstone](docs/capstone.md)** — the self-destruct scenario from Evangelion Episode 13, run through our system
+
+## Development
+
+```bash
+just check            # Lint + typecheck + test (the CI gate)
+just test             # Unit tests with 90% coverage threshold
+just test-integration # Integration tests (hits real Claude API)
+just format           # Auto-format with ruff
+```
+
+See [CLAUDE.md](CLAUDE.md) for the full development workflow.
 
 ## License
 
