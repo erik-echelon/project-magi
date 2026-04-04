@@ -1,5 +1,7 @@
 # Project MAGI — development commands
 
+set dotenv-load
+
 # Run ruff linter and format check
 lint:
     uv run ruff check src/ tests/
@@ -19,7 +21,7 @@ test:
 
 # Run integration tests (hits real API, costs tokens)
 test-integration:
-    uv run pytest -m integration -v || [ $? -eq 5 ]
+    uv run --env-file .env pytest -m integration -v || [ $? -eq 5 ]
 
 # Show coverage report
 coverage:
