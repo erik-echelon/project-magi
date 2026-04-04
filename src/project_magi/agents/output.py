@@ -4,12 +4,23 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass, field
 from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
 VALID_SEVERITIES = frozenset({"critical", "warning", "info"})
+
+# Zero-width and invisible Unicode characters that LLMs sometimes produce
+_ZERO_WIDTH_RE = re.compile(
+    "[\u200b\u200c\u200d\u200e\u200f\ufeff\u2060\u2061\u2062\u2063\u2064\u180e]"
+)
+
+
+def strip_zero_width(text: str) -> str:
+    """Remove zero-width and invisible Unicode characters from text."""
+    return _ZERO_WIDTH_RE.sub("", text)
 
 
 @dataclass(frozen=True)
@@ -68,7 +79,7 @@ class PersonaOutput:
                 raw_response=raw_text,
             )
 
-        analysis = str(data.get("analysis", ""))
+        analysis = strip_zero_width(str(data.get("analysis", "")))
         confidence = _clamp_confidence(data.get("confidence", 0.5))
         findings = _parse_findings(data.get("findings", []))
 
@@ -131,8 +142,8 @@ def _parse_findings(raw_findings: object) -> list[Finding]:
         severity = str(item.get("severity") or "info").lower()
         if severity not in VALID_SEVERITIES:
             severity = "info"
-        title = str(item.get("title") or "")
-        detail = str(item.get("detail") or "")
+        title = strip_zero_width(str(item.get("title") or ""))
+        detail = strip_zero_width(str(item.get("detail") or ""))
         if title:
             findings.append(Finding(severity=severity, title=title, detail=detail))
 
