@@ -276,6 +276,8 @@ result = session.deliberate(
 
 # result.consensus — agreed positions
 # result.disagreements — unresolved friction
+# result.dimension_map — per-dimension alignment table
+# result.findings — deduplicated findings, severity-ranked
 # result.persona_positions — per-agent final takes
 # result.transcript — full deliberation history
 ```
