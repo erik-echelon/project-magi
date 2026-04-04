@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from anthropic.types import MessageParam
 
 # Default model for V1
-DEFAULT_MODEL = "claude-opus-4-20250514"
+DEFAULT_MODEL = "claude-opus-4-6"
 DEFAULT_MAX_TOKENS = 4096
 DEFAULT_TIMEOUT = 300.0
 

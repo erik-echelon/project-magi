@@ -1,5 +1,5 @@
 {
-  "id": "msg_016q6qYrvbDpf9Z9FKFgJKna",
+  "id": "msg_01FhX7Loq6twgRFDbGUiiADy",
   "container": null,
   "content": [
     {
@@ -8,7 +8,7 @@
       "type": "text"
     }
   ],
-  "model": "claude-opus-4-20250514",
+  "model": "claude-opus-4-6",
   "role": "assistant",
   "stop_details": null,
   "stop_reason": "end_turn",
@@ -21,8 +21,8 @@
     },
     "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
-    "inference_geo": "not_available",
-    "input_tokens": 26,
+    "inference_geo": "global",
+    "input_tokens": 27,
     "output_tokens": 10,
     "server_tool_use": null,
     "service_tier": "standard"

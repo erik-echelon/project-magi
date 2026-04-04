@@ -78,9 +78,9 @@ class TestMessage:
 
 class TestProviderResponse:
     def test_create_minimal(self) -> None:
-        resp = ProviderResponse(content="hello", model="claude-sonnet-4-20250514")
+        resp = ProviderResponse(content="hello", model="claude-opus-4-6")
         assert resp.content == "hello"
-        assert resp.model == "claude-sonnet-4-20250514"
+        assert resp.model == "claude-opus-4-6"
         assert resp.input_tokens == 0
         assert resp.output_tokens == 0
         assert resp.stop_reason == ""
@@ -89,7 +89,7 @@ class TestProviderResponse:
     def test_create_full(self) -> None:
         resp = ProviderResponse(
             content="answer",
-            model="claude-sonnet-4-20250514",
+            model="claude-opus-4-6",
             input_tokens=100,
             output_tokens=50,
             stop_reason="end_turn",
