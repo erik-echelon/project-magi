@@ -255,6 +255,32 @@ class TestDiscoverPersonas:
         names = [p.name for p in result.personas]
         assert names == ["a", "m", "z"]
 
+    def test_excludes_system_agents_by_default(self, tmp_path: Path) -> None:
+        for name in ["melchior.md", "magi.md", "magi-builder.md", "magi-coordinator.md"]:
+            stem = name.replace(".md", "")
+            (tmp_path / name).write_text(
+                f'---\nname: {stem}\ndescription: "Agent {stem}"\n---\n\nBody.'
+            )
+
+        result = discover_personas(tmp_path)
+        names = {p.name for p in result.personas}
+        assert "melchior" in names
+        assert "magi" not in names
+        assert "magi-builder" not in names
+        assert "magi-coordinator" not in names
+
+    def test_include_system_agents_when_requested(self, tmp_path: Path) -> None:
+        for name in ["melchior.md", "magi.md"]:
+            stem = name.replace(".md", "")
+            (tmp_path / name).write_text(
+                f'---\nname: {stem}\ndescription: "Agent {stem}"\n---\n\nBody.'
+            )
+
+        result = discover_personas(tmp_path, exclude_system_agents=False)
+        names = {p.name for p in result.personas}
+        assert "melchior" in names
+        assert "magi" in names
+
 
 class TestDefaultPersonas:
     """Tests that load the real default personas from .claude/agents/."""

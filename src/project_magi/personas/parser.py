@@ -116,14 +116,29 @@ class PersonaDiscoveryResult:
     errors: list[tuple[Path, str]] = field(default_factory=list)
 
 
+# MAGI system agent filenames that should not be loaded as deliberation personas
+_SYSTEM_AGENT_NAMES = frozenset(
+    {
+        "magi",
+        "magi-builder",
+        "magi-coordinator",
+    }
+)
+
+
 def discover_personas(
     directory: Path | None = None,
+    *,
+    exclude_system_agents: bool = True,
 ) -> PersonaDiscoveryResult:
     """Scan a directory for persona .md files and parse them.
 
     Args:
         directory: The directory to scan. Defaults to .claude/agents/ relative
                    to the current working directory.
+        exclude_system_agents: If True (default), excludes MAGI system agents
+            (magi.md, magi-builder.md, magi-coordinator.md) from the results.
+            Set to False to load all .md files.
 
     Returns:
         A PersonaDiscoveryResult with successfully parsed personas and any errors.
@@ -138,6 +153,10 @@ def discover_personas(
         return result
 
     for md_file in sorted(directory.glob("*.md")):
+        # Skip system agents when loading deliberation personas
+        if exclude_system_agents and md_file.stem in _SYSTEM_AGENT_NAMES:
+            continue
+
         try:
             persona = parse_persona_file(md_file)
             result.personas.append(persona)
