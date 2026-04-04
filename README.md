@@ -18,6 +18,17 @@ Working with a single AI has the same problem. One perspective gives you one rea
 
 At the end of the series, Shinji is offered Instrumentality: dissolve all human consciousness into one unified whole, no more misunderstanding, no more pain. He turns it down. Separate minds that struggle to understand each other are better than one mind that never has to. MAGI takes the same position. It doesn't blend perspectives into an average. It keeps them separate, lets them argue, and reports what survived.
 
+## Getting Started
+
+Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync --dev        # Install dependencies
+just check           # Run lint + typecheck + tests
+```
+
+See `CLAUDE.md` for the full development workflow.
+
 ## License
 
 MIT
