@@ -380,6 +380,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
+    { name = "pyyaml" },
 ]
 
 [package.dev-dependencies]
@@ -393,7 +394,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "anthropic", specifier = ">=0.52" }]
+requires-dist = [
+    { name = "anthropic", specifier = ">=0.52" },
+    { name = "pyyaml", specifier = ">=6.0" },
+]
 
 [package.metadata.requires-dev]
 dev = [
