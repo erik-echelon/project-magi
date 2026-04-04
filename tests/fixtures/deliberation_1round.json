@@ -1,0 +1,31 @@
+{
+  "question": "Should we adopt a microservices architecture for our monolithic e-commerce platform?",
+  "round_count": 1,
+  "stopped_reason": "wrap_up",
+  "persona_outputs": [
+    {
+      "persona_name": "balthasar",
+      "confidence": 0.92,
+      "analysis_length": 1553,
+      "findings_count": 5
+    },
+    {
+      "persona_name": "casper",
+      "confidence": 0.92,
+      "analysis_length": 1719,
+      "findings_count": 6
+    },
+    {
+      "persona_name": "melchior",
+      "confidence": 0.75,
+      "analysis_length": 1010,
+      "findings_count": 5
+    }
+  ],
+  "critique_summary": {
+    "dimensions": 5,
+    "agreements": 3,
+    "disagreements": 1,
+    "deduplicated_findings": 16
+  }
+}
