@@ -5,27 +5,27 @@
   "persona_outputs": [
     {
       "persona_name": "balthasar",
-      "confidence": 0.92,
-      "analysis_length": 1553,
+      "confidence": 0.8,
+      "analysis_length": 1672,
       "findings_count": 5
     },
     {
       "persona_name": "casper",
-      "confidence": 0.92,
-      "analysis_length": 1719,
-      "findings_count": 6
+      "confidence": 0.9,
+      "analysis_length": 1424,
+      "findings_count": 5
     },
     {
       "persona_name": "melchior",
-      "confidence": 0.75,
-      "analysis_length": 1010,
-      "findings_count": 5
+      "confidence": 0.7,
+      "analysis_length": 1656,
+      "findings_count": 4
     }
   ],
   "critique_summary": {
     "dimensions": 5,
     "agreements": 3,
-    "disagreements": 1,
-    "deduplicated_findings": 16
+    "disagreements": 2,
+    "deduplicated_findings": 14
   }
 }
