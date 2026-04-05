@@ -1,4 +1,4 @@
-# Philosophy
+# Philosophy: EVANGELION and the MAGI
 
 > *"Understanding each other one hundred percent is impossible. Of course, that's why we spend so much time trying to understand ourselves and others. That's what makes life so interesting."* — Kaji Ryoji
 
