@@ -292,6 +292,137 @@ class TestClaudeProviderSendMessage:
             )
 
 
+class TestSendMessageWithTools:
+    @pytest.fixture
+    def provider(self) -> ClaudeProvider:
+        return ClaudeProvider(api_key="sk-ant-test-key")
+
+    @pytest.fixture
+    def mock_create(self, provider: ClaudeProvider) -> Generator[AsyncMock, None, None]:
+        mock = AsyncMock()
+        with patch.object(provider._client.messages, "create", mock):
+            yield mock
+
+    @pytest.mark.asyncio
+    async def test_end_turn_no_tools(
+        self, provider: ClaudeProvider, mock_create: AsyncMock
+    ) -> None:
+        mock_create.return_value = _make_mock_response(text="Final answer")
+
+        result = await provider.send_message_with_tools(
+            system_prompt="You are helpful.",
+            messages=[Message(role="user", content="Hello")],
+            tools=[{"name": "read_file", "description": "Read a file", "input_schema": {}}],
+            tool_handler=lambda name, input_data: "file contents",
+        )
+
+        assert result.content == "Final answer"
+        assert result.input_tokens == 10
+        assert result.output_tokens == 5
+
+    @pytest.mark.asyncio
+    async def test_tool_use_loop(self, provider: ClaudeProvider, mock_create: AsyncMock) -> None:
+        """Test the tool-use loop: first call triggers tool, second returns text."""
+        # First response: tool_use
+        tool_block = MagicMock()
+        tool_block.type = "tool_use"
+        tool_block.name = "read_file"
+        tool_block.id = "tool_123"
+        tool_block.input = {"path": "foo.txt"}
+
+        usage1 = MagicMock()
+        usage1.input_tokens = 10
+        usage1.output_tokens = 15
+
+        response1 = MagicMock()
+        response1.content = [tool_block]
+        response1.model = DEFAULT_MODEL
+        response1.usage = usage1
+        response1.stop_reason = "tool_use"
+        response1.model_dump.return_value = {
+            "content": [
+                {
+                    "type": "tool_use",
+                    "id": "tool_123",
+                    "name": "read_file",
+                    "input": {"path": "foo.txt"},
+                },
+            ],
+        }
+
+        # Second response: end_turn
+        response2 = _make_mock_response(text="Done", input_tokens=20, output_tokens=10)
+
+        mock_create.side_effect = [response1, response2]
+
+        handler_calls: list[tuple[str, dict]] = []
+
+        def handler(name: str, input_data: dict) -> str:
+            handler_calls.append((name, input_data))
+            return "file contents here"
+
+        result = await provider.send_message_with_tools(
+            system_prompt="test",
+            messages=[Message(role="user", content="Read foo.txt")],
+            tools=[{"name": "read_file", "description": "Read", "input_schema": {}}],
+            tool_handler=handler,
+        )
+
+        assert result.content == "Done"
+        assert result.input_tokens == 30  # 10 + 20
+        assert result.output_tokens == 25  # 15 + 10
+        assert handler_calls == [("read_file", {"path": "foo.txt"})]
+
+    @pytest.mark.asyncio
+    async def test_max_turns_exhausted(
+        self, provider: ClaudeProvider, mock_create: AsyncMock
+    ) -> None:
+        """If every turn is tool_use, stop at max_turns."""
+        tool_block = MagicMock()
+        tool_block.type = "tool_use"
+        tool_block.name = "read_file"
+        tool_block.id = "tool_abc"
+        tool_block.input = {"path": "x"}
+
+        usage = MagicMock()
+        usage.input_tokens = 5
+        usage.output_tokens = 5
+
+        text_block = MagicMock()
+        text_block.type = "text"
+        text_block.text = "partial"
+
+        response = MagicMock()
+        response.content = [text_block, tool_block]
+        response.model = DEFAULT_MODEL
+        response.usage = usage
+        response.stop_reason = "tool_use"
+        response.model_dump.return_value = {
+            "content": [
+                {"type": "text", "text": "partial"},
+                {
+                    "type": "tool_use",
+                    "id": "tool_abc",
+                    "name": "read_file",
+                    "input": {"path": "x"},
+                },
+            ],
+        }
+
+        mock_create.return_value = response
+
+        result = await provider.send_message_with_tools(
+            system_prompt="test",
+            messages=[Message(role="user", content="go")],
+            tools=[{"name": "read_file", "description": "Read", "input_schema": {}}],
+            tool_handler=lambda n, i: "data",
+            max_turns=2,
+        )
+
+        assert result.stop_reason == "max_turns"
+        assert result.input_tokens == 10  # 5 * 2
+
+
 class TestProviderProtocol:
     def test_claude_provider_is_a_provider(self) -> None:
         from project_magi.providers.base import Provider

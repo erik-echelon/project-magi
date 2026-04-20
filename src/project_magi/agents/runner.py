@@ -11,6 +11,8 @@ from project_magi.agents.output import PersonaOutput
 from project_magi.providers.base import Attachment, Message
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from project_magi.personas.model import Persona
     from project_magi.providers.base import Provider
 
@@ -92,12 +94,32 @@ def _build_round2_prompt(
     return "".join(parts)
 
 
+AGENTIC_EXPLORE_PREFIX = """\
+You have access to tools to explore the directory at: {root_dir}
+Use them to read files, search code, and find relevant information before answering.
+
+"""
+
+
+def _has_agentic_support(provider: object) -> bool:
+    return hasattr(provider, "send_message_with_tools")
+
+
 class PersonaAgentRunner:
     """Runs a single persona agent against a provider."""
 
-    def __init__(self, persona: Persona, provider: Provider) -> None:
+    def __init__(self, persona: Persona, provider: Provider, root_dir: Path | None = None) -> None:
         self.persona = persona
         self.provider = provider
+        self.root_dir = root_dir
+
+    @property
+    def _use_agentic(self) -> bool:
+        return (
+            self.root_dir is not None
+            and bool(self.persona.tools)
+            and _has_agentic_support(self.provider)
+        )
 
     async def run_round1(
         self,
@@ -108,12 +130,7 @@ class PersonaAgentRunner:
         system_prompt = self.persona.system_prompt
         user_prompt = _build_round1_prompt(question)
 
-        response = await self.provider.send_message(
-            system_prompt=system_prompt,
-            messages=[Message(role="user", content=user_prompt)],
-            attachments=attachments,
-        )
-
+        response = await self._send(system_prompt, user_prompt, attachments)
         return PersonaOutput.parse(self.persona.name, response.content)
 
     async def run_round2(
@@ -133,13 +150,41 @@ class PersonaAgentRunner:
             human_feedback=human_feedback,
         )
 
-        response = await self.provider.send_message(
+        response = await self._send(system_prompt, user_prompt, attachments)
+        return PersonaOutput.parse(self.persona.name, response.content)
+
+    async def _send(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        attachments: list[Attachment] | None,
+    ):
+        """Send via agentic or standard path."""
+        if self._use_agentic:
+            return await self._send_agentic(system_prompt, user_prompt)
+
+        return await self.provider.send_message(
             system_prompt=system_prompt,
             messages=[Message(role="user", content=user_prompt)],
             attachments=attachments,
         )
 
-        return PersonaOutput.parse(self.persona.name, response.content)
+    async def _send_agentic(self, system_prompt: str, user_prompt: str):
+        """Send using the agentic tool-use loop."""
+        from project_magi.tools.executor import TOOL_DEFINITIONS, ToolExecutor
+
+        assert self.root_dir is not None
+        executor = ToolExecutor(self.root_dir)
+
+        explore_prefix = AGENTIC_EXPLORE_PREFIX.format(root_dir=self.root_dir)
+        full_prompt = explore_prefix + user_prompt
+
+        return await self.provider.send_message_with_tools(  # type: ignore[attr-error]  # ty: ignore[unresolved-attribute]
+            system_prompt=system_prompt,
+            messages=[Message(role="user", content=full_prompt)],
+            tools=TOOL_DEFINITIONS,
+            tool_handler=executor.execute,
+        )
 
 
 @dataclass

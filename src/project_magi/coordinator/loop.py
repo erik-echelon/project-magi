@@ -15,6 +15,8 @@ from project_magi.agents.runner import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from project_magi.agents.output import PersonaOutput
     from project_magi.coordinator.checkpoint import CheckpointAction
     from project_magi.personas.model import Persona
@@ -28,6 +30,7 @@ class DeliberationConfig:
     """Configuration for a deliberation session."""
 
     max_rounds: int = 3
+    root_dir: Path | None = None
 
 
 @dataclass
@@ -106,7 +109,7 @@ async def run_deliberation(
     cfg = config or DeliberationConfig()
     state = DeliberationState(question=question)
 
-    runners = [PersonaAgentRunner(p, provider) for p in personas]
+    runners = [PersonaAgentRunner(p, provider, root_dir=cfg.root_dir) for p in personas]
 
     for round_num in range(1, cfg.max_rounds + 1):
         logger.info("Starting round %d", round_num)

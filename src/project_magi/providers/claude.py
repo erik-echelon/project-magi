@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import TYPE_CHECKING, Any, cast
 
@@ -10,7 +11,11 @@ import anthropic
 from project_magi.providers.base import Attachment, Message, ProviderResponse
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from anthropic.types import MessageParam
+
+logger = logging.getLogger(__name__)
 
 # Default model for V1
 DEFAULT_MODEL = "claude-opus-4-7"
@@ -131,6 +136,77 @@ class ClaudeProvider:
             "type": "text",
             "text": f"[Attachment: {att.filename}]\n{att.data.decode('utf-8', errors='replace')}",
         }
+
+    async def send_message_with_tools(
+        self,
+        system_prompt: str,
+        messages: list[Message],
+        tools: list[dict[str, Any]],
+        tool_handler: Callable[[str, dict[str, Any]], str],
+        *,
+        max_tokens: int | None = None,
+        max_turns: int = 10,
+    ) -> ProviderResponse:
+        """Run the agentic tool-use loop.
+
+        Calls messages.create with tools, executes tool calls via tool_handler,
+        and loops until end_turn/max_tokens or max_turns is reached.
+        """
+        api_messages: list[MessageParam] = [
+            cast("MessageParam", {"role": m.role, "content": m.content}) for m in messages
+        ]
+        total_input = 0
+        total_output = 0
+
+        for _turn in range(max_turns):
+            response = await self._client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens or self.max_tokens,
+                system=system_prompt,
+                messages=api_messages,
+                tools=tools,  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+            )
+
+            total_input += response.usage.input_tokens
+            total_output += response.usage.output_tokens
+
+            if response.stop_reason != "tool_use":
+                return ProviderResponse(
+                    content=self._extract_text(response),
+                    model=response.model,
+                    input_tokens=total_input,
+                    output_tokens=total_output,
+                    stop_reason=response.stop_reason or "",
+                    raw=response.model_dump(),
+                )
+
+            # Append assistant message with all content blocks
+            raw_content = response.model_dump()["content"]
+            api_messages.append(
+                cast("MessageParam", {"role": "assistant", "content": raw_content})
+            )
+
+            # Execute each tool call and build results
+            tool_results: list[dict[str, Any]] = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    logger.debug("Tool call: %s(%s)", block.name, block.input)
+                    result_text = tool_handler(block.name, block.input)  # type: ignore[arg-type]
+                    tool_results.append(
+                        {"type": "tool_result", "tool_use_id": block.id, "content": result_text}
+                    )
+
+            api_messages.append(cast("MessageParam", {"role": "user", "content": tool_results}))
+
+        # Exhausted max_turns
+        return ProviderResponse(
+            content=self._extract_text(response),
+            model=response.model,
+            input_tokens=total_input,
+            output_tokens=total_output,
+            stop_reason="max_turns",
+            raw=response.model_dump(),
+        )
 
     @staticmethod
     def _extract_text(response: anthropic.types.Message) -> str:

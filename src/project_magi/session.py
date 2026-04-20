@@ -95,6 +95,7 @@ class MagiSession:
         model: str | None = None,
         api_key: str | None = None,
         verbose: bool = False,
+        root_dir: Path | str | None = None,
     ) -> None:
         """Initialize a MAGI session.
 
@@ -139,6 +140,7 @@ class MagiSession:
 
         self.max_rounds = max_rounds
         self.verbose = verbose
+        self.root_dir = Path(root_dir).resolve() if root_dir else None
 
     async def deliberate(
         self,
@@ -167,7 +169,7 @@ class MagiSession:
             personas=self.personas,
             question=question,
             attachments=resolved_attachments or None,
-            config=DeliberationConfig(max_rounds=self.max_rounds),
+            config=DeliberationConfig(max_rounds=self.max_rounds, root_dir=self.root_dir),
             on_checkpoint=on_checkpoint,
         )
 

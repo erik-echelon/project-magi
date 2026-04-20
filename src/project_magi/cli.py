@@ -51,6 +51,12 @@ def main() -> None:
     delib_parser.add_argument("--output", "-o", default=None, help="Write report to this file")
     delib_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose report")
     delib_parser.add_argument(
+        "--dir",
+        "-d",
+        default=None,
+        help="Root directory for agentic file exploration",
+    )
+    delib_parser.add_argument(
         "--auto",
         action="store_true",
         help="Run without checkpoints (auto-complete all rounds)",
@@ -103,6 +109,7 @@ async def _run_deliberate(args: argparse.Namespace) -> None:
         max_rounds=args.max_rounds,
         model=args.model,
         verbose=args.verbose,
+        root_dir=args.dir,
     )
     attachments: list[str | Path | Attachment] | None = (
         [Path(p) for p in file_paths] if file_paths else None
