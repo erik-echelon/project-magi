@@ -10,6 +10,8 @@ import pytest
 from project_magi.agents.critique import (
     CritiqueOutput,
     _build_critique_prompt,
+    _extract_json,
+    _find_outermost_json,
     _higher_severity,
     deduplicate_findings,
     run_critique_agent,
@@ -233,6 +235,71 @@ class TestCritiqueOutputParse:
         assert output.agreements == []
         assert output.disagreements == []
         assert output.talking_past == []
+
+
+class TestExtractJson:
+    def test_raw_json(self) -> None:
+        assert _extract_json('{"a": 1}') == '{"a": 1}'
+
+    def test_json_fence(self) -> None:
+        raw = '```json\n{"a": 1}\n```'
+        assert _extract_json(raw) == '{"a": 1}'
+
+    def test_plain_fence(self) -> None:
+        raw = '```\n{"a": 1}\n```'
+        assert _extract_json(raw) == '{"a": 1}'
+
+    def test_preamble_before_json(self) -> None:
+        raw = 'Here is my analysis:\n\n{"dimensions": [], "agreements": []}'
+        result = _extract_json(raw)
+        assert result is not None
+        assert result.startswith("{")
+        parsed = json.loads(result)
+        assert parsed["dimensions"] == []
+
+    def test_preamble_and_postamble(self) -> None:
+        raw = 'My synthesis:\n{"a": 1}\n\nI hope this helps!'
+        result = _extract_json(raw)
+        assert result == '{"a": 1}'
+
+    def test_nested_braces(self) -> None:
+        raw = 'Text before\n{"outer": {"inner": "value"}}\nText after'
+        result = _extract_json(raw)
+        assert result is not None
+        parsed = json.loads(result)
+        assert parsed["outer"]["inner"] == "value"
+
+    def test_braces_inside_strings(self) -> None:
+        raw = 'Preamble\n{"quote": "she said {hello}"}\nDone'
+        result = _extract_json(raw)
+        assert result is not None
+        parsed = json.loads(result)
+        assert parsed["quote"] == "she said {hello}"
+
+    def test_no_json_at_all(self) -> None:
+        assert _extract_json("Just plain text, no JSON") is None
+
+    def test_escaped_quotes_in_strings(self) -> None:
+        raw = r'Note:\n{"key": "value with \"escaped\" quotes"}'
+        result = _extract_json(raw)
+        assert result is not None
+        assert result.startswith("{")
+
+
+class TestFindOutermostJson:
+    def test_no_brace(self) -> None:
+        assert _find_outermost_json("no braces here") is None
+
+    def test_simple_object(self) -> None:
+        assert _find_outermost_json('prefix {"a": 1} suffix') == '{"a": 1}'
+
+    def test_nested(self) -> None:
+        result = _find_outermost_json('x {"a": {"b": 2}} y')
+        assert result is not None
+        assert json.loads(result) == {"a": {"b": 2}}
+
+    def test_unclosed_brace_returns_none(self) -> None:
+        assert _find_outermost_json('prefix {"a": 1') is None
 
 
 class TestBuildCritiquePrompt:

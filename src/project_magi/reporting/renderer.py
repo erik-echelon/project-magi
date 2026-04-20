@@ -60,6 +60,10 @@ def render_report(
     # 5. Per-persona final position
     sections.append(_render_persona_positions(persona_outputs, verbose=verbose))
 
+    # 6. Round-by-round transcript (verbose only)
+    if verbose and len(state.rounds) > 1:
+        sections.append(_render_transcript(state))
+
     return "\n".join(sections)
 
 
@@ -171,6 +175,42 @@ def _render_persona_positions(
             summary = _first_paragraph(output.analysis, max_chars=200)
             lines.append(summary)
 
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+def _render_transcript(state: DeliberationState) -> str:
+    """Render the full round-by-round transcript."""
+    lines = ["## Transcript", ""]
+
+    for rnd in state.rounds:
+        lines.append(f"### Round {rnd.round_number}")
+        lines.append("")
+
+        # Persona outputs
+        for output in sorted(rnd.persona_result.outputs, key=lambda o: o.persona_name):
+            name = output.persona_name.capitalize()
+            lines.append(f"#### {name} (confidence: {output.confidence})")
+            lines.append("")
+            lines.append(output.analysis)
+            lines.append("")
+
+        # Critique synthesis
+        if rnd.critique.raw_response:
+            lines.append("#### Critique Synthesis")
+            lines.append("")
+            lines.append(rnd.critique.raw_response)
+            lines.append("")
+
+        # Human feedback if any
+        if rnd.human_feedback:
+            lines.append("#### Human Feedback")
+            lines.append("")
+            lines.append(rnd.human_feedback)
+            lines.append("")
+
+        lines.append("---")
         lines.append("")
 
     return "\n".join(lines)

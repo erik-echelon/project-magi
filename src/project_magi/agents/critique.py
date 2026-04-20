@@ -185,23 +185,84 @@ class CritiqueOutput:
 
 
 def _extract_json(text: str) -> str | None:
-    """Extract JSON from text, handling markdown fences."""
+    """Extract JSON from text, handling markdown fences and surrounding prose.
+
+    Tries multiple strategies in order:
+    1. ```json ... ``` fenced block
+    2. ``` ... ``` fenced block (no language tag)
+    3. Raw text starting with { or [
+    4. Find the outermost { ... } by brace-matching (handles preamble/postamble)
+    """
     stripped = text.strip()
 
+    # Strategy 1: ```json ... ```
     if "```json" in stripped:
         start = stripped.index("```json") + len("```json")
         end = stripped.find("```", start)
         if end != -1:
             return stripped[start:end].strip()
 
+    # Strategy 2: ``` ... ```
     if stripped.startswith("```") and stripped.endswith("```"):
         inner = stripped[3:]
         end = inner.rfind("```")
         if end > 0:
             return inner[:end].strip()
 
+    # Strategy 3: raw JSON
     if stripped.startswith("{") or stripped.startswith("["):
         return stripped
+
+    # Strategy 4: find outermost { ... } via brace-matching
+    result = _find_outermost_json(stripped)
+    if result is None:
+        logger.warning(
+            "All JSON extraction strategies failed. "
+            "First 300 chars: %.300s | Last 300 chars: %.300s",
+            stripped,
+            stripped[-300:] if len(stripped) > 300 else stripped,
+        )
+    return result
+
+
+def _find_outermost_json(text: str) -> str | None:
+    """Find the outermost JSON object in text by matching braces.
+
+    Skips braces inside JSON string literals to avoid false matches.
+    """
+    start = text.find("{")
+    if start == -1:
+        return None
+
+    depth = 0
+    in_string = False
+    escape_next = False
+
+    for i in range(start, len(text)):
+        ch = text[i]
+
+        if escape_next:
+            escape_next = False
+            continue
+
+        if ch == "\\":
+            if in_string:
+                escape_next = True
+            continue
+
+        if ch == '"':
+            in_string = not in_string
+            continue
+
+        if in_string:
+            continue
+
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
 
     return None
 
@@ -358,6 +419,14 @@ async def run_critique_agent(
     response = await provider.send_message(
         system_prompt=CRITIQUE_SYSTEM_PROMPT,
         messages=[Message(role="user", content=user_prompt)],
+        max_tokens=16384,
+    )
+
+    logger.debug(
+        "Critique raw response (stop=%s, tokens=%d): %.200s...",
+        response.stop_reason,
+        response.output_tokens,
+        response.content,
     )
 
     critique = CritiqueOutput.parse(response.content)

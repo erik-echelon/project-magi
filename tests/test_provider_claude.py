@@ -12,7 +12,7 @@ import anthropic
 import pytest
 
 from project_magi.providers.base import Attachment, Message
-from project_magi.providers.claude import DEFAULT_MODEL, ClaudeProvider
+from project_magi.providers.claude import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, ClaudeProvider
 
 
 def _make_mock_response(
@@ -114,7 +114,7 @@ class TestClaudeProviderSendMessage:
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args.kwargs
         assert call_kwargs["model"] == DEFAULT_MODEL
-        assert call_kwargs["max_tokens"] == 4096
+        assert call_kwargs["max_tokens"] == DEFAULT_MAX_TOKENS
         assert call_kwargs["system"] == "Be concise."
 
     @pytest.mark.asyncio

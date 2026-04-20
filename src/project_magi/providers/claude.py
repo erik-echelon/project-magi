@@ -13,8 +13,8 @@ if TYPE_CHECKING:
     from anthropic.types import MessageParam
 
 # Default model for V1
-DEFAULT_MODEL = "claude-opus-4-6"
-DEFAULT_MAX_TOKENS = 4096
+DEFAULT_MODEL = "claude-opus-4-7"
+DEFAULT_MAX_TOKENS = 16384
 DEFAULT_TIMEOUT = 300.0
 
 
@@ -53,13 +53,14 @@ class ClaudeProvider:
         system_prompt: str,
         messages: list[Message],
         attachments: list[Attachment] | None = None,
+        max_tokens: int | None = None,
     ) -> ProviderResponse:
         """Send a message to Claude and return the response."""
         api_messages = self._build_messages(messages, attachments)
 
         response = await self._client.messages.create(
             model=self.model,
-            max_tokens=self.max_tokens,
+            max_tokens=max_tokens or self.max_tokens,
             system=system_prompt,
             messages=api_messages,
         )

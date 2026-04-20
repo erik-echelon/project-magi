@@ -73,6 +73,7 @@ class Provider(Protocol):
         system_prompt: str,
         messages: list[Message],
         attachments: list[Attachment] | None = None,
+        max_tokens: int | None = None,
     ) -> ProviderResponse:
         """Send a message to the LLM and return the response."""
         ...

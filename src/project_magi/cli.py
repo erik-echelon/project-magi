@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from project_magi.coordinator.checkpoint import CheckpointAction
     from project_magi.coordinator.loop import DeliberationState
+    from project_magi.providers.base import Attachment
 
 
 def main() -> None:
@@ -27,6 +28,13 @@ def main() -> None:
     # deliberate command
     delib_parser = subparsers.add_parser("deliberate", help="Run a deliberation")
     delib_parser.add_argument("question", help="The question to deliberate on")
+    delib_parser.add_argument(
+        "--file",
+        "-f",
+        action="append",
+        default=[],
+        help="Attach a file (PDF, image, or text). Can be repeated: -f a.pdf -f b.pdf",
+    )
     delib_parser.add_argument(
         "--max-rounds", type=int, default=3, help="Maximum rounds (default: 3)"
     )
@@ -72,9 +80,23 @@ def main() -> None:
         asyncio.run(_run_suggest(args))
 
 
+def _resolve_file_args(file_paths: list[str]) -> list[str]:
+    """Validate file paths from --file arguments and return resolved paths."""
+    resolved: list[str] = []
+    for raw_path in file_paths:
+        p = Path(raw_path)
+        if not p.exists():
+            print(f"Error: file not found: {p}", file=sys.stderr)
+            sys.exit(1)
+        resolved.append(str(p.resolve()))
+    return resolved
+
+
 async def _run_deliberate(args: argparse.Namespace) -> None:
     """Run a deliberation."""
     from project_magi.session import MagiSession
+
+    file_paths = _resolve_file_args(args.file)
 
     session = MagiSession(
         personas_dir=args.personas_dir,
@@ -82,12 +104,16 @@ async def _run_deliberate(args: argparse.Namespace) -> None:
         model=args.model,
         verbose=args.verbose,
     )
+    attachments: list[str | Path | Attachment] | None = (
+        [Path(p) for p in file_paths] if file_paths else None
+    )
 
     if args.auto:
-        result = await session.deliberate(question=args.question)
+        result = await session.deliberate(question=args.question, attachments=attachments)
     else:
         result = await session.deliberate(
             question=args.question,
+            attachments=attachments,
             on_checkpoint=_interactive_checkpoint,
         )
 
